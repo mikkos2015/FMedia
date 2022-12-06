@@ -38,7 +38,9 @@ services:
     container_name: webserver
     restart: unless-stopped
     ports:
-      - "80:80"
+      - 80:80
+    expose:
+      - 9113
     volumes:
       - wordpress:/var/www/html
       - ./nginx-conf:/etc/nginx/conf.d
@@ -56,6 +58,39 @@ services:
 #     - certbot-etc:/etc/letsencrypt
 #     - wordpress:/var/www/html
 #   command: certonly --webroot --webroot-path=/var/www/html --email blog@example.com --agree-tos --no-eff-email --staging -d example.com -d blog.example.com
+
+# ============ Monitoring =================:
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: monitoring-prometheus
+    volumes:
+            - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - 9090:9090
+    networks:
+      - app-network
+
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: monitoring-node-exporter
+    restart: unless-stopped
+    expose:
+      - 9100
+    networks:
+      - app-network
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: monitoring-grafana
+    depends_on:
+      - prometheus
+    volumes:
+            - ./grafana/grafana.ini:/etc/grafana/grafana.ini
+            - ./grafana/datasource.yml:/etc/grafana/provisioning/datasources/datasource.yaml
+    ports:
+      - 3000:3000
+    networks:
+      - app-network
 
 volumes:
 # certbot-etc:
