@@ -1,0 +1,55 @@
+Author Mikhail Soloviev, St.Petersburg, Russia, 2022
+
+This is a test task that establishes WP web server blog.example.com with MySQL database in a local Docker enviroment.
+
+Web server is based on https://www.digitalocean.com/community/tutorials/how-to-install-wordpress-with-docker-compose tips.
+
+Monitoring is based on https://techviewleo.com/run-prometheus-and-grafana-using-docker-compose/ tips.
+
+*.example.com is already occupied domain. More, it is a special one and certificate authorities block it so we skip SSL.
+
+Assuming you are on Linux, please cfollow these steps in order to install the stack on your Docker environment:
+
+$ cd ~
+
+$ git clone -b main https://github.com/mikkos2015/FMedia
+
+$ cd FMedia
+
+$ nano .env
+
+add: MYSQL_ROOT_PASSWORD=root_....
+
+add: MYSQL_USER=wpdb_user
+
+add: MYSQL_PASSWORD=wpdb_....
+
+with your own passwords and save
+
+$ sudo gedit /etc/hosts
+
+add "127.0.0.1	blog.example.com"
+
+$ docker-compose up -d
+
+Navigate to http://blog.example.com with your local browser. You should see WordPress first setup page
+
+Monitoring is at http://localhost:3000 page with default admin/admin credentials
+
+In order to see metrics like ![on this picture](MetricsExample.png) add to your Grafana dashboard these four panels:
+
+Docker RAM, %:
+(node_memory_MemFree_bytes / node_memory_MemTotal_bytes) * 100
+ 
+Free Disk space, %:
+100 * node_filesystem_avail_bytes{device="/dev/vda1"} / node_filesystem_size_bytes{device="/dev/vda1"}
+
+Docker CPU Load, %:
+(1 - irate(node_cpu_seconds_total{mode="idle"}[1m])) * 100
+
+Docker average load:
+node_load1
+
+<!---
+monitoring and example.com took most of my time
+--->
